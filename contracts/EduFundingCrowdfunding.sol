@@ -9,6 +9,13 @@ contract EduFundCrowdfunding {
     address public platformCommissionAddress;
     IEduFundToken public eduToken;
     
+    enum Category{
+        Research,
+        Hackathon,
+        Startup,
+        Event
+    }
+
     struct Campaign {
         address creator;
         string title;
@@ -16,6 +23,7 @@ contract EduFundCrowdfunding {
         uint256 deadline;
         uint256 totalRaised;
         bool finalized;
+        Category category;
     }
     
     mapping(uint256 => Campaign) public campaigns;
@@ -32,7 +40,7 @@ contract EduFundCrowdfunding {
         eduToken = IEduFundToken(_tokenAddress);
     }
     
-    function createCampaign(string memory _title, uint256 _fundingGoal, uint256 _durationDays) external {
+    function createCampaign(string memory _title, uint256 _fundingGoal, uint256 _durationDays, Category _category) external {
         require(_fundingGoal > 0, "Funding goal must be > 0");
         require(_durationDays > 0, "Duration must be > 0");
         
@@ -43,7 +51,8 @@ contract EduFundCrowdfunding {
             fundingGoal: _fundingGoal,
             deadline: block.timestamp + (_durationDays * 1 days),
             totalRaised: 0,
-            finalized: false
+            finalized: false,
+            category: _category
         });
         
         emit CampaignCreated(campaignId, msg.sender, _title, _fundingGoal, campaigns[campaignId].deadline);
@@ -91,5 +100,10 @@ contract EduFundCrowdfunding {
     
     function getContribution(uint256 _campaignId, address _contributor) external view returns (uint256) {
         return contributions[_campaignId][_contributor];
+    }
+
+    function getCampaignCategory(uint256 _campaignId) external view returns (Category) {
+    require(_campaignId < campaignCount, "Campaign does not exist");
+    return campaigns[_campaignId].category;
     }
 }
