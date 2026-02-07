@@ -17,3 +17,13 @@ async function connectWallet() {
     document.getElementById("wallet").innerText =
         "Wallet: " + accounts[0];
 }
+
+function updateProgress(current, goal) {
+    const percent = Math.floor((current / goal) * 100);
+
+    document.getElementById("progressBar").style.width = percent + "%";
+    document.getElementById("progressText").innerText =
+        current + " / " + goal + " ETH (" + percent + "%)";
+}
+
+updateProgress(1.2, 3);

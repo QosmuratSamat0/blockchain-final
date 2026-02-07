@@ -7,12 +7,29 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>EduFund</h1>
-    <p>Student Crowdfunding (Testnet)</p>
+<div class="page">
 
-    <button onclick="connectWallet()">Connect MetaMask</button>
-    <p id="wallet">Wallet: not connected</p>
+    <div class="main-card">
+        <h1>EduFund</h1>
+        <p>Student Crowdfunding (Testnet)</p>
+
+        <button onclick="connectWallet()">Connect MetaMask</button>
+        <p id="wallet">Wallet: not connected</p>
+    </div>
+
+    <div class="campaigns-section">
+        <div class="campaign-card">
+            <h3>AI Study Assistant</h3>
+            <p>Goal: 3 ETH</p>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <p id="progressText">0 / 3 ETH</p>
+        </div>
+    </div>
+
 </div>
 
 <script src="../node_modules/ethers/dist/ethers.umd.min.js"></script>
