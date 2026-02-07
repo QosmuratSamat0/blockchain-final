@@ -2,34 +2,71 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EduFund</title>
+    <title>EduFund Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
-<div class="page">
+<div class="dashboard">
 
-    <div class="main-card">
-        <h1>EduFund</h1>
-        <p>Student Crowdfunding (Testnet)</p>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>EduFund</h2>
 
-        <button onclick="connectWallet()">Connect MetaMask</button>
+        <div class="menu-item">Dashboard</div>
+        <div class="menu-item active">Campaigns</div>
+        <div class="menu-item">Create Campaign</div>
+        <div class="menu-item">My Portfolio</div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <h1>Dashboard</h1>
+
+        <button class="connect-btn" onclick="connectWallet()">
+            Connect Wallet
+        </button>
+
         <p id="wallet">Wallet: not connected</p>
-    </div>
 
-    <div class="campaigns-section">
+        <h2>All Campaigns</h2>
+
+        <!-- Filters -->
+        <div class="filters">
+            <input
+                type="text"
+                placeholder="Search campaigns..."
+                class="search-input"
+            >
+
+            <select class="filter-select">
+                <option>All Category</option>
+                <option>Education</option>
+                <option>Technology</option>
+            </select>
+
+            <select class="filter-select">
+                <option>All Status</option>
+                <option>Active</option>
+                <option>Completed</option>
+            </select>
+        </div>
+
+        <!-- Campaign Card -->
         <div class="campaign-card">
-    <h3>AI Study Assistant</h3>
-    <p class="label">Goal: 3 ETH</p>
+            <h3>AI Study Assistant</h3>
+            <p class="goal">Goal: 3 ETH</p>
 
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar">40%</div>
-    </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
 
-    <p id="progressText">1.2 / 3 ETH (40%)</p>
+            <p id="progressText">1.2 / 3 ETH (40%)</p>
+            <p id="countdown" class="countdown"></p>
+        </div>
 
-    <div id="countdown" class="countdown"></div>
-</div>
     </div>
 
 </div>
