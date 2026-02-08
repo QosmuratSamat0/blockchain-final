@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EduFund Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2><i class="fas fa-graduation-cap"></i> EduFund</h2>
+
+        <div class="menu-item" data-section="dashboard">
+            <i class="fas fa-home"></i> Dashboard
+        </div>
+        <div class="menu-item active" data-section="campaigns">
+            <i class="fas fa-bullhorn"></i> Campaigns
+        </div>
+        <div class="menu-item" data-section="create">
+            <i class="fas fa-plus-circle"></i> Create Campaign
+        </div>
+        <div class="menu-item" data-section="portfolio">
+            <i class="fas fa-wallet"></i> My Portfolio
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <!-- Header with wallet connection -->
+        <div class="topbar">
+            <h1>EduFund Dashboard</h1>
+            <div class="wallet-section">
+                <button class="connect-btn" id="connectBtn" onclick="connectWallet()">
+                    <i class="fas fa-plug"></i> Connect Wallet
+                </button>
+            </div>
+        </div>
+
+        <!-- Wallet & Network Info -->
+        <div class="info-cards">
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-wallet"></i> Wallet Address</div>
+                <div class="info-value" id="walletAddress">Not connected</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-network-wired"></i> Network</div>
+                <div class="info-value" id="networkInfo">Not connected</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label"><i class="fab fa-ethereum"></i> ETH Balance</div>
+                <div class="info-value" id="ethBalance">0 ETH</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-coins"></i> EDU Tokens</div>
+                <div class="info-value" id="eduBalance">0 EDU</div>
+            </div>
+        </div>
+
+        <!-- Transaction Status -->
+        <div class="tx-status" id="txStatus" style="display: none;">
+            <div class="tx-status-content">
+                <span class="tx-icon" id="txIcon"><i class="fas fa-spinner fa-spin"></i></span>
+                <span class="tx-message" id="txMessage">Processing transaction...</span>
+            </div>
+        </div>
+
+        <!-- Sections -->
+
+        <!-- Dashboard Section -->
+        <div class="section" id="section-dashboard" style="display: none;">
+            <h2>Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCampaigns">0</div>
+                    <div class="stat-label">Total Campaigns</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activeCampaigns">0</div>
+                    <div class="stat-label">Active Campaigns</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="myContributions">0 ETH</div>
+                    <div class="stat-label">My Contributions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaigns Section -->
+        <div class="section" id="section-campaigns">
+            <h2>All Campaigns</h2>
+
+            <!-- Filters -->
+            <div class="filters">
+                <input
+                    type="text"
+                    placeholder="Search campaigns..."
+                    class="search-input"
+                    id="searchInput"
+                    onkeyup="filterCampaigns()"
+                >
+
+                <select class="filter-select" id="categoryFilter" onchange="filterCampaigns()">
+                    <option value="">All Categories</option>
+                    <option value="0">Research</option>
+                    <option value="1">Hackathon</option>
+                    <option value="2">Startup</option>
+                    <option value="3">Event</option>
+                </select>
+
+                <select class="filter-select" id="statusFilter" onchange="filterCampaigns()">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                </select>
+
+                <button class="btn-secondary" onclick="loadCampaigns()">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Campaign List -->
+            <div class="campaigns-grid" id="campaignsContainer">
+                <p class="loading-text">Connect wallet to view campaigns...</p>
+            </div>
+        </div>
+
+        <!-- Create Campaign Section -->
+        <div class="section" id="section-create" style="display: none;">
+            <h2>Create New Campaign</h2>
+            
+            <div class="form-card">
+                <div class="form-group">
+                    <label for="campaignTitle">Campaign Title</label>
+                    <input type="text" id="campaignTitle" placeholder="Enter campaign title">
+                </div>
+
+                <div class="form-group">
+                    <label for="fundingGoal">Funding Goal (ETH)</label>
+                    <input type="number" id="fundingGoal" step="0.01" placeholder="e.g., 1.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Duration (Days)</label>
+                    <input type="number" id="duration" min="1" placeholder="e.g., 30">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category">
+                        <option value="0">Research</option>
+                        <option value="1">Hackathon</option>
+                        <option value="2">Startup</option>
+                        <option value="3">Event</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" onclick="createCampaign()">
+                    <i class="fas fa-rocket"></i> Create Campaign
+                </button>
+            </div>
+        </div>
+
+        <!-- Portfolio Section -->
+        <div class="section" id="section-portfolio" style="display: none;">
+            <h2>My Portfolio</h2>
+            
+            <div class="portfolio-info">
+                <h3>My Campaigns</h3>
+                <div id="myCampaigns" class="campaigns-grid">
+                    <p class="loading-text">Loading your campaigns...</p>
+                </div>
+
+                <h3>My Contributions</h3>
+                <div id="myContributionsList" class="contributions-list">
+                    <p class="loading-text">Loading your contributions...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Contribution Modal -->
+<div class="modal" id="contributeModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Contribute to Campaign</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="contributeAmount">Amount (ETH)</label>
+                <input type="number" id="contributeAmount" step="0.001" placeholder="e.g., 0.1">
+            </div>
+            <p class="reward-info">
+                <i class="fas fa-gift"></i> You will receive <span id="rewardTokens">0</span> EDU tokens as reward
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="confirmContribution()">
+                <i class="fas fa-hand-holding-usd"></i> Contribute
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.9.0/ethers.umd.min.js"></script>
+
+<!-- Application Scripts -->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/wallet.js"></script>
+<script src="js/contracts.js"></script>
+<script src="js/campaigns.js"></script>
+<script src="js/portfolio.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
