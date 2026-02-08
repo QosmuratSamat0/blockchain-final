@@ -28,11 +28,9 @@ contract EduFundCrowdfunding {
     
     mapping(uint256 => Campaign) public campaigns;
     mapping(uint256 => mapping(address => uint256)) public contributions;
+    mapping(address => uint256[]) public userCampaigns; // Track campaigns a user contributed to
     uint256 public campaignCount;
-
-    mapping(address => uint256[]) public userContributions;
-    mapping(address => mapping(uint256 => bool)) private _historyAdded;
-
+    
     event CampaignCreated(uint256 indexed campaignId, address creator, string title, uint256 goal, uint256 deadline);
     event ContributionMade(uint256 indexed campaignId, address contributor, uint256 amount);
     event CommissionSplit(uint256 indexed campaignId, uint256 creatorAmount, uint256 platformAmount);
@@ -68,6 +66,12 @@ contract EduFundCrowdfunding {
         require(block.timestamp < campaigns[_campaignId].deadline, "Campaign deadline passed");
         
         Campaign storage campaign = campaigns[_campaignId];
+        
+        // Track new contribution if it's first time user contributes to this campaign
+        if (contributions[_campaignId][msg.sender] == 0) {
+            userCampaigns[msg.sender].push(_campaignId);
+        }
+        
         contributions[_campaignId][msg.sender] += msg.value;
         campaign.totalRaised += msg.value;
         
@@ -75,18 +79,17 @@ contract EduFundCrowdfunding {
         uint256 creatorAmount = (msg.value * 90) / 100;
         uint256 platformAmount = msg.value - creatorAmount;
         
-        payable(campaign.creator).transfer(creatorAmount);
-        payable(platformCommissionAddress).transfer(platformAmount);
+        (bool successCreator, ) = payable(campaign.creator).call{value: creatorAmount}("");
+        require(successCreator, "Transfer to creator failed");
+
+        (bool successPlatform, ) = payable(platformCommissionAddress).call{value: platformAmount}("");
+        require(successPlatform, "Transfer to platform failed");
+
         
         // Mint EDU tokens (1 EDU per 0.01 ETH)
         uint256 tokenAmount = (msg.value * 100);
         eduToken.mint(msg.sender, tokenAmount);
         
-        if (!_historyAdded[msg.sender][_campaignId]) {
-            userContributions[msg.sender].push(_campaignId);
-            _historyAdded[msg.sender][_campaignId] = true;
-        }
-
         emit ContributionMade(_campaignId, msg.sender, msg.value);
         emit CommissionSplit(_campaignId, creatorAmount, platformAmount);
     }
@@ -115,7 +118,17 @@ contract EduFundCrowdfunding {
         return campaigns[_campaignId].category;
     }
 
-    function getUserCampaignHistory(address user) external view returns (uint256[] memory) {
-        return userContributions[user];
+    function getContributions(address _user) external view returns (uint256[] memory campaignIds, uint256[] memory amounts) {
+        uint256 count = userCampaigns[_user].length;
+        campaignIds = new uint256[](count);
+        amounts = new uint256[](count);
+        
+        for (uint256 i = 0; i < count; i++) {
+            uint256 campaignId = userCampaigns[_user][i];
+            campaignIds[i] = campaignId;
+            amounts[i] = contributions[campaignId][_user];
+        }
+        
+        return (campaignIds, amounts);
     }
 }

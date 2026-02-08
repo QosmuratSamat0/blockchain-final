@@ -18,6 +18,8 @@ const CROWDFUNDING_ABI = [
     "function finalizeCampaign(uint256 _campaignId)",
     "function getCampaign(uint256 _campaignId) view returns (tuple(address creator, string title, uint256 fundingGoal, uint256 deadline, uint256 totalRaised, bool finalized, uint8 category))",
     "function getContribution(uint256 _campaignId, address _contributor) view returns (uint256)",
+    "function getContributions(address _user) view returns (uint256[] campaignIds, uint256[] amounts)",
+    "function getCampaignCategory(uint256 _campaignId) view returns (uint8)",
     "event CampaignCreated(uint256 indexed campaignId, address creator, string title, uint256 goal, uint256 deadline)",
     "event ContributionMade(uint256 indexed campaignId, address contributor, uint256 amount)",
     "event CampaignFinalized(uint256 indexed campaignId, uint256 totalRaised)"

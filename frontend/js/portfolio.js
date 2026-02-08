@@ -18,12 +18,17 @@ async function loadPortfolio() {
         let contribHtml = '';
         let totalContributed = 0n;
         
-        for (const campaign of allCampaigns) {
-            try {
-                const contrib = await crowdfundingContract.getContribution(campaign.id, currentAccount);
-                if (contrib > 0n) {
-                    const contribEth = parseFloat(ethers.formatEther(contrib));
-                    totalContributed += contrib;
+        try {
+            const [campaignIds, amounts] = await crowdfundingContract.getContributions(currentAccount);
+            
+            for (let i = 0; i < campaignIds.length; i++) {
+                const campaignId = campaignIds[i];
+                const amount = amounts[i];
+                
+                const campaign = allCampaigns.find(c => c.id === BigInt(campaignId));
+                if (campaign && amount > 0n) {
+                    const contribEth = parseFloat(ethers.formatEther(amount));
+                    totalContributed += amount;
                     contribHtml += `
                         <div class="contribution-item">
                             <span class="contrib-campaign">${escapeHtml(campaign.title)}</span>
@@ -31,8 +36,26 @@ async function loadPortfolio() {
                         </div>
                     `;
                 }
-            } catch (e) {
-                console.error(`Error checking contribution for campaign ${campaign.id}:`, e);
+            }
+        } catch (e) {
+            // Fallback to old method if getContributions fails
+            console.warn("getContributions not available, using fallback method:", e);
+            for (const campaign of allCampaigns) {
+                try {
+                    const contrib = await crowdfundingContract.getContribution(campaign.id, currentAccount);
+                    if (contrib > 0n) {
+                        const contribEth = parseFloat(ethers.formatEther(contrib));
+                        totalContributed += contrib;
+                        contribHtml += `
+                            <div class="contribution-item">
+                                <span class="contrib-campaign">${escapeHtml(campaign.title)}</span>
+                                <span class="contrib-amount">${contribEth.toFixed(4)} ETH</span>
+                            </div>
+                        `;
+                    }
+                } catch (err) {
+                    console.error(`Error checking contribution for campaign ${campaign.id}:`, err);
+                }
             }
         }
         
@@ -92,12 +115,24 @@ async function loadDashboardStats() {
     
     if (crowdfundingContract && currentAccount) {
         let total = 0n;
-        for (const campaign of allCampaigns) {
-            try {
-                const contrib = await crowdfundingContract.getContribution(campaign.id, currentAccount);
-                total += contrib;
-            } catch (e) {}
+        
+        try {
+            // Use new getContributions for efficiency
+            const [campaignIds, amounts] = await crowdfundingContract.getContributions(currentAccount);
+            for (let i = 0; i < amounts.length; i++) {
+                total += amounts[i];
+            }
+        } catch (e) {
+            // Fallback to old method
+            console.warn("getContributions not available, using fallback:", e);
+            for (const campaign of allCampaigns) {
+                try {
+                    const contrib = await crowdfundingContract.getContribution(campaign.id, currentAccount);
+                    total += contrib;
+                } catch (err) {}
+            }
         }
+        
         const totalEth = parseFloat(ethers.formatEther(total));
         document.getElementById("myContributions").textContent = `${totalEth.toFixed(4)} ETH`;
     }
