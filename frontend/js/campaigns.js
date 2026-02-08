@@ -118,7 +118,10 @@ function filterCampaigns() {
         
         // Status filter
         const deadline = new Date(Number(campaign.deadline) * 1000);
-        const isActive = deadline > now && !campaign.finalized;
+        const goalEth = parseFloat(ethers.formatEther(campaign.fundingGoal));
+        const raisedEth = parseFloat(ethers.formatEther(campaign.totalRaised));
+        const goalReached = raisedEth >= goalEth;
+        const isActive = deadline > now && !campaign.finalized && !goalReached;
         
         if (statusFilter === "active" && !isActive) return false;
         if (statusFilter === "completed" && isActive) return false;
