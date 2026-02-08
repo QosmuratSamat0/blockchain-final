@@ -29,7 +29,10 @@ contract EduFundCrowdfunding {
     mapping(uint256 => Campaign) public campaigns;
     mapping(uint256 => mapping(address => uint256)) public contributions;
     uint256 public campaignCount;
-    
+
+    mapping(address => uint256[]) public userContributions;
+    mapping(address => mapping(uint256 => bool)) private _historyAdded;
+
     event CampaignCreated(uint256 indexed campaignId, address creator, string title, uint256 goal, uint256 deadline);
     event ContributionMade(uint256 indexed campaignId, address contributor, uint256 amount);
     event CommissionSplit(uint256 indexed campaignId, uint256 creatorAmount, uint256 platformAmount);
@@ -79,6 +82,11 @@ contract EduFundCrowdfunding {
         uint256 tokenAmount = (msg.value * 100);
         eduToken.mint(msg.sender, tokenAmount);
         
+        if (!_historyAdded[msg.sender][_campaignId]) {
+            userContributions[msg.sender].push(_campaignId);
+            _historyAdded[msg.sender][_campaignId] = true;
+        }
+
         emit ContributionMade(_campaignId, msg.sender, msg.value);
         emit CommissionSplit(_campaignId, creatorAmount, platformAmount);
     }
@@ -103,7 +111,11 @@ contract EduFundCrowdfunding {
     }
 
     function getCampaignCategory(uint256 _campaignId) external view returns (Category) {
-    require(_campaignId < campaignCount, "Campaign does not exist");
-    return campaigns[_campaignId].category;
+        require(_campaignId < campaignCount, "Campaign does not exist");
+        return campaigns[_campaignId].category;
+    }
+
+    function getUserCampaignHistory(address user) external view returns (uint256[] memory) {
+        return userContributions[user];
     }
 }
