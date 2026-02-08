@@ -218,6 +218,11 @@ function updateRewardPreview() {
 async function confirmContribution() {
     if (selectedCampaignId === null) return;
     
+    if (!crowdfundingContract || !signer) {
+        showTxStatus("error", "Please connect your wallet first.");
+        return;
+    }
+    
     const amountEth = document.getElementById("contributeAmount").value;
     
     if (!amountEth || parseFloat(amountEth) <= 0) {
@@ -225,13 +230,14 @@ async function confirmContribution() {
         return;
     }
     
+    const campaignId = selectedCampaignId;
     closeModal();
     
     try {
         showTxStatus("pending", "Processing contribution... Please confirm in MetaMask.");
         
         const amountWei = ethers.parseEther(amountEth);
-        const tx = await crowdfundingContract.contribute(selectedCampaignId, {
+        const tx = await crowdfundingContract.contribute(campaignId, {
             value: amountWei
         });
         
