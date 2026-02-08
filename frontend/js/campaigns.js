@@ -55,7 +55,8 @@ function displayCampaigns(campaigns) {
         const percent = goalEth > 0 ? Math.min(100, Math.floor((raisedEth / goalEth) * 100)) : 0;
         const deadline = new Date(Number(campaign.deadline) * 1000);
         const now = new Date();
-        const isActive = deadline > now && !campaign.finalized;
+        const goalReached = raisedEth >= goalEth;
+        const isActive = deadline > now && !campaign.finalized && !goalReached;
         const timeLeft = getTimeLeft(deadline);
         const isCreator = currentAccount && campaign.creator.toLowerCase() === currentAccount.toLowerCase();
         
@@ -66,7 +67,7 @@ function displayCampaigns(campaigns) {
                         ${CATEGORY_NAMES[campaign.category]}
                     </span>
                     <span class="status-badge ${isActive ? 'status-active' : 'status-ended'}">
-                        ${isActive ? 'Active' : (campaign.finalized ? 'Finalized' : 'Ended')}
+                        ${isActive ? 'Active' : (campaign.finalized ? 'Finalized' : (goalReached ? 'Goal Reached' : 'Ended'))}
                     </span>
                 </div>
                 <h3>${escapeHtml(campaign.title)}</h3>
@@ -86,7 +87,7 @@ function displayCampaigns(campaigns) {
                             <i class="fas fa-hand-holding-usd"></i> Contribute
                         </button>
                     ` : ''}
-                    ${isCreator && !campaign.finalized && deadline <= now ? `
+                    ${isCreator && !campaign.finalized && (goalReached || deadline <= now) ? `
                         <button class="btn-secondary btn-small" onclick="finalizeCampaign(${campaign.id})">
                             <i class="fas fa-check"></i> Finalize
                         </button>
@@ -230,6 +231,7 @@ async function confirmContribution() {
         return;
     }
     
+    // Save campaign ID before closing modal (closeModal sets it to null)
     const campaignId = selectedCampaignId;
     closeModal();
     
@@ -251,7 +253,8 @@ async function confirmContribution() {
         // Reload data
         await Promise.all([
             loadBalances(),
-            loadCampaigns()
+            loadCampaigns(),
+            loadPortfolio()
         ]);
         
         setTimeout(hideTxStatus, 5000);

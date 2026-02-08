@@ -22,10 +22,10 @@ async function loadPortfolio() {
             const [campaignIds, amounts] = await crowdfundingContract.getContributions(currentAccount);
             
             for (let i = 0; i < campaignIds.length; i++) {
-                const campaignId = campaignIds[i];
+                const campaignId = Number(campaignIds[i]);
                 const amount = amounts[i];
                 
-                const campaign = allCampaigns.find(c => c.id === BigInt(campaignId));
+                const campaign = allCampaigns.find(c => c.id === campaignId);
                 if (campaign && amount > 0n) {
                     const contribEth = parseFloat(ethers.formatEther(amount));
                     totalContributed += amount;

@@ -66,6 +66,7 @@ contract EduFundCrowdfunding {
         require(block.timestamp < campaigns[_campaignId].deadline, "Campaign deadline passed");
         
         Campaign storage campaign = campaigns[_campaignId];
+        require(campaign.totalRaised < campaign.fundingGoal, "Funding goal already reached");
         
         // Track new contribution if it's first time user contributes to this campaign
         if (contributions[_campaignId][msg.sender] == 0) {
@@ -98,8 +99,12 @@ contract EduFundCrowdfunding {
         require(_campaignId < campaignCount, "Campaign does not exist");
         Campaign storage campaign = campaigns[_campaignId];
         require(msg.sender == campaign.creator, "Only creator can finalize");
-        require(block.timestamp > campaign.deadline, "Deadline not reached");
         require(!campaign.finalized, "Already finalized");
+        
+        // Can finalize if goal is reached OR deadline is passed
+        bool goalReached = campaign.totalRaised >= campaign.fundingGoal;
+        bool deadlinePassed = block.timestamp > campaign.deadline;
+        require(goalReached || deadlinePassed, "Goal not reached and deadline not passed");
         
         campaign.finalized = true;
         emit CampaignFinalized(_campaignId, campaign.totalRaised);
